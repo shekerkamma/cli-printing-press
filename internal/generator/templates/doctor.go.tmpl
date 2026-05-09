@@ -190,6 +190,29 @@ func newDoctorCmd(flags *rootFlags) *cobra.Command {
 {{- else}}
 			if cfg != nil {
 				header := cfg.AuthHeader()
+{{- if and .Auth .Auth.In (eq .Auth.In "query")}}
+				// Auth is sent as a query parameter, not a header — AuthHeader()
+				// returns "" by design. Check the credential field directly.
+				if header == "" && cfg.AuthSource != "" {
+					report["auth"] = "configured (API key)"
+					report["auth_source"] = cfg.AuthSource
+				} else if header == "" {
+{{- if .Auth.Optional}}
+					report["auth"] = "optional — not configured"
+{{- else}}
+					report["auth"] = "not configured"
+{{- end}}
+{{- with $canonicalEnvVar}}
+					report["auth_hint"] = "export {{.Name}}=<your-key>"
+{{- end}}
+{{- if .Auth.KeyURL}}
+					report["auth_key_url"] = "{{.Auth.KeyURL}}"
+{{- end}}
+				} else {
+					report["auth"] = "configured"
+					report["auth_source"] = cfg.AuthSource
+				}
+{{- else}}
 				if header == "" {
 {{- if .Auth.Optional}}
 					report["auth"] = "optional — not configured"
@@ -206,6 +229,7 @@ func newDoctorCmd(flags *rootFlags) *cobra.Command {
 					report["auth"] = "configured"
 					report["auth_source"] = cfg.AuthSource
 				}
+{{- end}}
 			}
 {{- end}}
 
