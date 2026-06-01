@@ -217,16 +217,7 @@ func GenerateFromPlan(planSpec *PlanSpec, outputDir string) error {
 		}
 	}
 
-	// Run go mod tidy to populate go.sum
-	tidyCmd := exec.Command("go", "mod", "tidy")
-	tidyCmd.Dir = outputDir
-	tidyCmd.Stdout = os.Stderr
-	tidyCmd.Stderr = os.Stderr
-	if err := tidyCmd.Run(); err != nil {
-		return fmt.Errorf("running go mod tidy: %w", err)
-	}
-
-	return nil
+	return EnsureGoModuleReady(outputDir)
 }
 
 // partitionCommands separates plan commands into top-level commands and

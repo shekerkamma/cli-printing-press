@@ -88,6 +88,43 @@ func staleGeneratedCommand() {}
 	runGoCommandForCLITest(t, outputDir, "build", "./cmd/regenapp-pp-cli")
 }
 
+func TestGenerateCmdWritesGoSumForColdStartBuild(t *testing.T) {
+	t.Parallel()
+
+	dir := t.TempDir()
+	specPath := filepath.Join(dir, "spec.yaml")
+	outputDir := filepath.Join(dir, "coldstartapp")
+	require.NoError(t, os.WriteFile(specPath, []byte(`name: coldstartapp
+description: Cold start app API
+version: 0.1.0
+base_url: https://api.example.com
+auth:
+  type: none
+config:
+  format: toml
+  path: ~/.config/coldstartapp-pp-cli/config.toml
+resources:
+  widgets:
+    description: Manage widgets
+    endpoints:
+      list:
+        method: GET
+        path: /widgets
+        description: List widgets
+`), 0o644))
+
+	cmd := newGenerateCmd()
+	cmd.SetArgs([]string{
+		"--spec", specPath,
+		"--output", outputDir,
+		"--validate=false",
+	})
+	require.NoError(t, cmd.Execute())
+
+	assert.FileExists(t, filepath.Join(outputDir, "go.sum"), "fresh generate should write go.sum")
+	runGoCommandForCLITest(t, outputDir, "build", "./cmd/coldstartapp-pp-cli")
+}
+
 func TestGenerateCmdHelpDescribesForceAsGeneratedOverwrite(t *testing.T) {
 	t.Parallel()
 

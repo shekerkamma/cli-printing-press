@@ -450,6 +450,9 @@ func runGenerateProject(apiSpec *spec.APISpec, absOut string, opts generateProje
 	if err := gen.Generate(); err != nil {
 		return nil, false, &ExitError{Code: ExitGenerationError, Err: fmt.Errorf("generating project: %w", err)}
 	}
+	if err := generator.EnsureGoModuleReady(absOut); err != nil {
+		return nil, false, &ExitError{Code: ExitGenerationError, Err: err}
+	}
 	if opts.validate {
 		if err := gen.Validate(); err != nil {
 			return nil, false, &ExitError{Code: ExitGenerationError, Err: fmt.Errorf("validating generated project: %w", err)}

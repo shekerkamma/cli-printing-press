@@ -75,8 +75,8 @@ func TestAutoBundleForHost(t *testing.T) {
 	})
 
 	t.Run("missing go.sum is silent", func(t *testing.T) {
-		// generate --validate=false intentionally leaves go.sum empty;
-		// auto-bundle should not warn about a known-incomplete state.
+		// Some directories may still reach auto-bundle before module hydration;
+		// missing go.sum should remain a silent skip instead of a warning.
 		dir := t.TempDir()
 		writeBundleManifest(t, dir, pipeline.MCPBManifest{
 			ManifestVersion: pipeline.MCPBManifestVersion,
